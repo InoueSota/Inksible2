@@ -1,25 +1,34 @@
-using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TitleManager : MonoBehaviour
 {
     // 自コンポーネント取得
     private InputManager inputManager;
 
-    private enum State
-    {
-        BEFORE,
-        AFTER
-    }
-    private State state = State.BEFORE;
+    // 他コンポーネント取得
+    private Transition transition;
+    private ColorData colorData;
 
     [Header("UI")]
-    [SerializeField] private GameObject pushAObj;
-    [SerializeField] private GameObject playObj;
+    [SerializeField] private float stalkerPower;
+    [SerializeField] private Image inkImage;
+    private Color inkTargetColor;
+    [SerializeField] private Image titleImage;
+    private Color titleTargetColor;
+    [SerializeField] private Image titleBackImage;
+    private Color titleBackTargetColor;
 
     void Start()
     {
         inputManager = GetComponent<InputManager>();
+
+        transition = GameObject.FindWithTag("Transition").GetComponent<Transition>();
+
+        // 色データ取得
+        colorData = new ColorData();
+        colorData.Initialize();
+        ColorInitialize(true);
     }
 
     void Update()
@@ -27,43 +36,75 @@ public class TitleManager : MonoBehaviour
         // 入力情報を最新に更新する
         inputManager.GetAllInput();
 
-        switch (state)
+        // 色変え
+        ChangeColor();
+        // 色徐々変え
+        ColorStalker();
+
+        // ステージセレクトに遷移する
+        if (inputManager.IsTrgger(inputManager.jump) && !transition.GetIsTransitionNow())
         {
-            case State.BEFORE:
-
-                if (inputManager.IsTrgger(inputManager.jump))
-                {
-                    ToAfter();
-                    state = State.AFTER;
-                }
-
-                break;
-            case State.AFTER:
-
-                if (inputManager.IsTrgger(inputManager.cancel))
-                {
-                    ToBefore();
-                    state = State.BEFORE;
-                }
-
-                break;
+            transition.SetTransition("SelectScene");
         }
     }
-    void ToAfter()
+    void ChangeColor()
     {
-        // False
-        pushAObj.SetActive(false);
-
-        // True
-        playObj.SetActive(true);
+        if (inputManager.IsTrgger(inputManager.left))
+        {
+            if (GlobalVariables.colorNum > 0)
+            {
+                GlobalVariables.colorNum--;
+            }
+            else
+            {
+                GlobalVariables.colorNum = colorData.maxColorNum - 1;
+            }
+            ColorInitialize(false);
+        }
+        else if (inputManager.IsTrgger(inputManager.right))
+        {
+            if (GlobalVariables.colorNum < colorData.maxColorNum - 1)
+            {
+                GlobalVariables.colorNum++;
+            }
+            else
+            {
+                GlobalVariables.colorNum = 0;
+            }
+            ColorInitialize(false);
+        }
     }
-    void ToBefore()
+    void ColorInitialize(bool _isStart)
     {
-        // False
-        playObj.SetActive(false);
+        // 色代入
+        GlobalVariables.color1 = colorData.GetMainColor(GlobalVariables.colorNum);
+        GlobalVariables.color2 = colorData.GetSubColor(GlobalVariables.colorNum);
 
-        // True
-        pushAObj.SetActive(true);
+        // Startメソッドのみ
+        if (_isStart)
+        {
+            inkImage.color = GlobalVariables.color1;
+            inkTargetColor = GlobalVariables.color1;
+            titleImage.color = GlobalVariables.color1;
+            titleTargetColor = GlobalVariables.color1;
+            titleBackImage.color = GlobalVariables.color2;
+            titleBackTargetColor = GlobalVariables.color2;
+        }
+        // それ以外
+        else
+        {
+            inkTargetColor = GlobalVariables.color1;
+            titleTargetColor = GlobalVariables.color1;
+            titleBackTargetColor = GlobalVariables.color2;
+        }
+    }
+    void ColorStalker()
+    {
+        float deltaStalkerPower = stalkerPower * Time.deltaTime;
+
+        inkImage.color += (inkTargetColor - inkImage.color) * deltaStalkerPower;
+        titleImage.color += (titleTargetColor - titleImage.color) * deltaStalkerPower;
+        titleBackImage.color += (titleBackTargetColor - titleBackImage.color) * deltaStalkerPower;
     }
 
     void LateUpdate()

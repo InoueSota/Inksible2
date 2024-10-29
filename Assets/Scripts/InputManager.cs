@@ -32,6 +32,8 @@ public class InputManager : MonoBehaviour
     public InputPattern change;
     public InputPattern cancel;
     public InputPattern reset;
+    public InputPattern right;
+    public InputPattern left;
     public InputPattern menu;
     public InputPattern jump;
 
@@ -42,6 +44,8 @@ public class InputManager : MonoBehaviour
         change = new InputPattern();
         cancel = new InputPattern();
         reset = new InputPattern();
+        right = new InputPattern();
+        left = new InputPattern();
         menu = new InputPattern();
         jump = new InputPattern();
     }
@@ -53,6 +57,8 @@ public class InputManager : MonoBehaviour
         change.SetIsGetInput(false);
         cancel.SetIsGetInput(false);
         reset.SetIsGetInput(false);
+        right.SetIsGetInput(false);
+        left.SetIsGetInput(false);
         menu.SetIsGetInput(false);
         jump.SetIsGetInput(false);
     }
@@ -64,6 +70,8 @@ public class InputManager : MonoBehaviour
         change.GetInput("Change");
         cancel.GetInput("Cancel");
         reset.GetInput("Reset");
+        right.GetInput("Right");
+        left.GetInput("Left");
         menu.GetInput("Menu");
         jump.GetInput("Jump");
     }
